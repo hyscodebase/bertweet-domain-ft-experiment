@@ -65,8 +65,7 @@ Use [notebooks/bertweet_domain_ft_colab_gpu.ipynb](notebooks/bertweet_domain_ft_
 
 1. Open the notebook in Colab.
 2. Select a GPU runtime in Colab.
-3. Push this repo to GitHub and set `REPO_URL` in the notebook, or upload/clone the repo to `/content/bertweet-domain-ft-experiment`.
-4. Run the notebook cells in order.
+3. Run the notebook cells in order. The notebook already points to `https://github.com/hyscodebase/bertweet-domain-ft-experiment.git` and clones it into `/content/bertweet-domain-ft-experiment`.
 
 The Colab notebook uses `configs/experiment_colab.yaml`, installs `requirements.txt`, imports the Hugging Face datasets, trains B0 on GPU, writes `outputs_colab/tables/baseline_metrics.csv`, and generates `outputs_colab/report.md`.
 

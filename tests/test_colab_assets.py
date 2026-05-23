@@ -12,6 +12,7 @@ def test_colab_notebook_references_gpu_workflow():
         for cell in notebook["cells"]
     )
     assert "nvidia-smi" in source
+    assert "REPO_URL = 'https://github.com/hyscodebase/bertweet-domain-ft-experiment.git'" in source
     assert "pip install -r requirements.txt" in source
     assert "configs/experiment_colab.yaml" in source
     assert "python -m src.hf_data" in source
