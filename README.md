@@ -59,6 +59,17 @@ python3 -m pip install -r requirements.txt
 
 `vinai/bertweet-base` requires internet access or a local Hugging Face cache.
 
+## Google Colab GPU
+
+Use [notebooks/bertweet_domain_ft_colab_gpu.ipynb](notebooks/bertweet_domain_ft_colab_gpu.ipynb) in Google Colab.
+
+1. Open the notebook in Colab.
+2. Select a GPU runtime in Colab.
+3. Push this repo to GitHub and set `REPO_URL` in the notebook, or upload/clone the repo to `/content/bertweet-domain-ft-experiment`.
+4. Run the notebook cells in order.
+
+The Colab notebook uses `configs/experiment_colab.yaml`, installs `requirements.txt`, imports the Hugging Face datasets, trains B0 on GPU, writes `outputs_colab/tables/baseline_metrics.csv`, and generates `outputs_colab/report.md`.
+
 ## Commands
 
 Import default Hugging Face datasets into the CSV layout:

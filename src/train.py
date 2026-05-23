@@ -101,6 +101,7 @@ def train_sequence_classifier(
         **_trainer_processing_kwargs(Trainer, tokenizer),
     }
     trainer = Trainer(**trainer_kwargs)
+    _reset_peak_gpu_memory()
     with timer() as timing:
         train_result = trainer.train()
     trainer.save_model(str(output_dir))
@@ -109,10 +110,30 @@ def train_sequence_classifier(
     metrics = {
         "run_id": run_id,
         "training_time_seconds": timing["elapsed"],
+        "peak_gpu_memory_mb": _peak_gpu_memory_mb(),
         **count_parameters(model),
         **train_result.metrics,
     }
     return metrics
+
+
+def _reset_peak_gpu_memory() -> None:
+    try:
+        import torch
+    except ImportError:
+        return
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+
+
+def _peak_gpu_memory_mb() -> float | None:
+    try:
+        import torch
+    except ImportError:
+        return None
+    if not torch.cuda.is_available():
+        return None
+    return torch.cuda.max_memory_allocated() / (1024 * 1024)
 
 
 def _trainer_processing_kwargs(trainer_cls: Any, tokenizer: Any) -> dict[str, Any]:

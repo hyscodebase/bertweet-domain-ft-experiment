@@ -13,6 +13,7 @@ outputs/metrics/*
 outputs/tables/*
 outputs/figures/*
 outputs/report.md
+outputs_colab/
 !outputs/checkpoints/.gitkeep
 !outputs/metrics/.gitkeep
 !outputs/tables/.gitkeep
