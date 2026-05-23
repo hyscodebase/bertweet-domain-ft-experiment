@@ -61,6 +61,12 @@ python3 -m pip install -r requirements.txt
 
 ## Commands
 
+Import default Hugging Face datasets into the CSV layout:
+
+```bash
+python -m src.hf_data --config configs/experiment.yaml --overwrite
+```
+
 Smoke checks:
 
 ```bash

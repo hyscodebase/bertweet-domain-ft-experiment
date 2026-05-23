@@ -101,4 +101,5 @@ def tokenize_frame(frame: pd.DataFrame, tokenizer: Any, text_column: str, max_le
     def tokenize(batch: dict[str, list[Any]]) -> dict[str, Any]:
         return tokenizer(batch[text_column], max_length=max_length, padding="max_length", truncation=True)
 
-    return dataset.map(tokenize, batched=True)
+    remove_columns = [column for column in dataset.column_names if column != "labels"]
+    return dataset.map(tokenize, batched=True, remove_columns=remove_columns)

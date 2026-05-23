@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+import inspect
 
 import numpy as np
 
@@ -34,26 +35,32 @@ def _training_arguments(cfg: ExperimentConfig, output_dir: Path):
     device = detect_device()
     use_fp16 = bool(training.get("fp16", False)) and device == "cuda"
     use_bf16 = bool(training.get("bf16", False)) and device == "cuda"
-    return TrainingArguments(
-        output_dir=str(output_dir),
-        num_train_epochs=float(training.get("epochs", 3)),
-        per_device_train_batch_size=int(training.get("batch_size", 16)),
-        per_device_eval_batch_size=int(training.get("eval_batch_size", 32)),
-        learning_rate=float(training.get("learning_rate", 2e-5)),
-        weight_decay=float(training.get("weight_decay", 0.01)),
-        warmup_ratio=float(training.get("warmup_ratio", 0.06)),
-        gradient_accumulation_steps=int(training.get("gradient_accumulation_steps", 1)),
-        fp16=use_fp16,
-        bf16=use_bf16,
-        evaluation_strategy=training.get("evaluation_strategy", "epoch"),
-        save_strategy=training.get("save_strategy", "epoch"),
-        load_best_model_at_end=bool(training.get("load_best_model_at_end", True)),
-        metric_for_best_model=training.get("metric_for_best_model", "f1_macro"),
-        greater_is_better=bool(training.get("greater_is_better", True)),
-        logging_steps=int(training.get("logging_steps", 50)),
-        report_to=[],
-        save_total_limit=2,
-    )
+    kwargs = {
+        "output_dir": str(output_dir),
+        "num_train_epochs": float(training.get("epochs", 3)),
+        "per_device_train_batch_size": int(training.get("batch_size", 16)),
+        "per_device_eval_batch_size": int(training.get("eval_batch_size", 32)),
+        "learning_rate": float(training.get("learning_rate", 2e-5)),
+        "weight_decay": float(training.get("weight_decay", 0.01)),
+        "warmup_ratio": float(training.get("warmup_ratio", 0.06)),
+        "gradient_accumulation_steps": int(training.get("gradient_accumulation_steps", 1)),
+        "fp16": use_fp16,
+        "bf16": use_bf16,
+        "save_strategy": training.get("save_strategy", "epoch"),
+        "load_best_model_at_end": bool(training.get("load_best_model_at_end", True)),
+        "metric_for_best_model": training.get("metric_for_best_model", "f1_macro"),
+        "greater_is_better": bool(training.get("greater_is_better", True)),
+        "logging_steps": int(training.get("logging_steps", 50)),
+        "report_to": [],
+        "save_total_limit": 2,
+    }
+    signature = inspect.signature(TrainingArguments.__init__).parameters
+    strategy_value = training.get("evaluation_strategy", training.get("eval_strategy", "epoch"))
+    if "evaluation_strategy" in signature:
+        kwargs["evaluation_strategy"] = strategy_value
+    else:
+        kwargs["eval_strategy"] = strategy_value
+    return TrainingArguments(**kwargs)
 
 
 def _compute_metrics(eval_prediction):
@@ -84,15 +91,16 @@ def train_sequence_classifier(
     if cfg.training.get("early_stopping_patience") is not None:
         callbacks.append(EarlyStoppingCallback(early_stopping_patience=int(cfg.training["early_stopping_patience"])))
 
-    trainer = Trainer(
-        model=model,
-        args=_training_arguments(cfg, output_dir),
-        train_dataset=train_data,
-        eval_dataset=valid_data,
-        tokenizer=tokenizer,
-        compute_metrics=_compute_metrics,
-        callbacks=callbacks,
-    )
+    trainer_kwargs = {
+        "model": model,
+        "args": _training_arguments(cfg, output_dir),
+        "train_dataset": train_data,
+        "eval_dataset": valid_data,
+        "compute_metrics": _compute_metrics,
+        "callbacks": callbacks,
+        **_trainer_processing_kwargs(Trainer, tokenizer),
+    }
+    trainer = Trainer(**trainer_kwargs)
     with timer() as timing:
         train_result = trainer.train()
     trainer.save_model(str(output_dir))
@@ -105,6 +113,15 @@ def train_sequence_classifier(
         **train_result.metrics,
     }
     return metrics
+
+
+def _trainer_processing_kwargs(trainer_cls: Any, tokenizer: Any) -> dict[str, Any]:
+    signature = inspect.signature(trainer_cls.__init__).parameters
+    if "tokenizer" in signature:
+        return {"tokenizer": tokenizer}
+    if "processing_class" in signature:
+        return {"processing_class": tokenizer}
+    return {}
 
 
 def _load_baseline_frames(cfg: ExperimentConfig):

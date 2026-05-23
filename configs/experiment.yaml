@@ -31,6 +31,71 @@ data:
   bias_eval: "data/bias/bias_eval.csv"
   robustness_eval: "data/robustness/robustness_eval.csv"
 
+hf_data:
+  enabled: true
+  max_train_examples: 512
+  max_valid_examples: 128
+  max_test_examples: 128
+  sources:
+    baseline:
+      dataset: "nyu-mll/glue"
+      config: "sst2"
+      domain: "baseline"
+      text_column: "sentence"
+      label_column: "label"
+      label_map:
+        "0": "negative"
+        "1": "positive"
+      splits:
+        train:
+          split: "train"
+          offset: 0
+        valid:
+          split: "validation"
+          offset: 0
+        test:
+          split: "validation"
+          offset: 128
+    twitter:
+      dataset: "cardiffnlp/tweet_eval"
+      config: "sentiment"
+      domain: "twitter"
+      text_column: "text"
+      label_column: "label"
+      label_map:
+        "0": "negative"
+        "2": "positive"
+      drop_labels: [1]
+      splits:
+        train:
+          split: "train"
+          offset: 0
+        valid:
+          split: "validation"
+          offset: 0
+        test:
+          split: "test"
+          offset: 0
+    general:
+      dataset: "stanfordnlp/imdb"
+      config: "plain_text"
+      domain: "general"
+      text_column: "text"
+      label_column: "label"
+      label_map:
+        "0": "negative"
+        "1": "positive"
+      splits:
+        train:
+          split: "train"
+          offsets: [0, 12500]
+        valid:
+          split: "test"
+          offsets: [0, 12500]
+        test:
+          split: "test"
+          offsets: [128, 12628]
+
 baseline:
   run_id: "B0"
   method: "full_ft"

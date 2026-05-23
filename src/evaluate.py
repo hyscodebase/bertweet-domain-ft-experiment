@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+import inspect
 
 import numpy as np
 import pandas as pd
@@ -52,7 +53,8 @@ def evaluate_model_on_eval_sets(
     label2id = {label: int(index) for label, index in label_mapping["label2id"].items()}
     id2label = {int(index): label for index, label in label_mapping["id2label"].items()}
     rows: list[dict[str, Any]] = []
-    trainer = Trainer(model=model, tokenizer=tokenizer)
+    trainer_kwargs = {"model": model, **_trainer_processing_kwargs(Trainer, tokenizer)}
+    trainer = Trainer(**trainer_kwargs)
 
     for eval_name, path in eval_set_paths(cfg).items():
         if not path:
@@ -83,3 +85,12 @@ def evaluate_model_on_eval_sets(
         )
         rows.append(metrics)
     return rows
+
+
+def _trainer_processing_kwargs(trainer_cls: Any, tokenizer: Any) -> dict[str, Any]:
+    signature = inspect.signature(trainer_cls.__init__).parameters
+    if "tokenizer" in signature:
+        return {"tokenizer": tokenizer}
+    if "processing_class" in signature:
+        return {"processing_class": tokenizer}
+    return {}

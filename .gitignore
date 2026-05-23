@@ -6,6 +6,8 @@ __pycache__/
 .venv/
 venv/
 *.pyc
+data/**/*.csv
+outputs/label_mapping.json
 outputs/checkpoints/*
 outputs/metrics/*
 outputs/tables/*

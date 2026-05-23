@@ -1,5 +1,5 @@
 from src.config import load_config
-from src.data import build_label_mapping, ensure_smoke_data, load_text_classification_csv
+from src.data import build_label_mapping, ensure_smoke_data, load_text_classification_csv, tokenize_frame
 
 
 def test_smoke_data_is_created_when_missing(tmp_path):
@@ -73,3 +73,30 @@ ranking:
     mapping = build_label_mapping(train, cfg.label_column)
     assert set(train.columns) >= {"text", "label"}
     assert mapping["label2id"] == {"negative": 0, "positive": 1}
+
+
+def test_tokenize_frame_removes_string_columns():
+    import pandas as pd
+
+    class DummyTokenizer:
+        def __call__(self, texts, max_length, padding, truncation):
+            assert padding == "max_length"
+            assert truncation is True
+            return {
+                "input_ids": [[1, 2, 0, 0] for _ in texts],
+                "attention_mask": [[1, 1, 0, 0] for _ in texts],
+            }
+
+    frame = pd.DataFrame(
+        {
+            "text": ["hello", "world"],
+            "label": ["negative", "positive"],
+            "domain": ["baseline", "baseline"],
+            "labels": [0, 1],
+        }
+    )
+    dataset = tokenize_frame(frame, DummyTokenizer(), "text", 4)
+    assert "text" not in dataset.column_names
+    assert "label" not in dataset.column_names
+    assert "domain" not in dataset.column_names
+    assert "labels" in dataset.column_names
