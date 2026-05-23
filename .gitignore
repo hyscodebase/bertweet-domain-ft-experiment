@@ -1,0 +1,17 @@
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+.venv/
+venv/
+*.pyc
+outputs/checkpoints/*
+outputs/metrics/*
+outputs/tables/*
+outputs/figures/*
+outputs/report.md
+!outputs/checkpoints/.gitkeep
+!outputs/metrics/.gitkeep
+!outputs/tables/.gitkeep
+!outputs/figures/.gitkeep
